@@ -1,53 +1,117 @@
-<!-- CODE DE DÉPART (À NE PAS TOUCHER, À RÉPARER) --> 
-<!DOCTYPE html> 
-<html> 
- 
-<head> 
-    <title>StockMaster</title> 
-    <style> 
-        .promo { 
-            color: red; 
-            font-weight: bold; 
-        } 
-    </style> 
-</head> 
- 
-<body> 
-    <h1>Gestion de Stock <h1> 
-    <div id="app"> 
-        <!-- Le contenu est généré par le script --> 
-    </div> 
- 
-    <script> 
-        async function updateEverything() { 
-            const container = document.getElementById('app'); 
- 
-            // On crée des données en dur à l'intérieur de la fonction 
-d'affichage 
-            setTimeout(() => { 
-                const produits = [ 
-                    { nom: "TV LED", prix: 400, cat: "Electronique" }, 
-                    { nom: "Micro-onde", prix: 120, cat: "Electromenager" }, 
-                    { nom: "Smartphone", prix: 800, cat: "Electronique" }, 
-                    { nom: "Lave-linge", prix: 300, cat: "Electromenager" }, 
-                ]; 
- 
-                container.innerHTML = ""; // On vide 
- 
-                produits.forEach(p => { 
-                    const item = document.createElement('div'); 
-                    item.innerHTML = `Produit: ${p.nom} - Prix: ${p.prix}€`; 
- 
-                    // Logique de style mélangée au DOM 
-                    if (p.cat === "Electronique") { 
-                        item.style.fontWeight = "bold"; 
-                    } 
-container.appendChild(item); 
-}); 
-}, 1000); // on simule un appel API 
-} 
-// Lancement initial 
-updateEverything(); 
-</script> 
-</body> 
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>StockMaster</title>
+    <style>
+        .promo {
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>Gestion de Stock</h1>
+
+    <label>Filtrer par catégorie :</label>
+    <select id="filterSelect">
+        <option value="ALL">Toutes</option>
+        <option value="Electronique">Electronique</option>
+        <option value="Electromenager">Electromenager</option>
+        <option value="Promotion">Promotion</option>
+    </select>
+
+    <button id="applyFilter">Appliquer</button>
+
+    <hr>
+
+    <div id="app"></div>
+
+    <hr>
+
+    <h2>Ajouter un produit</h2>
+    <input id="nom" placeholder="Nom">
+    <input id="prix" placeholder="Prix" type="number">
+    <input id="cat" placeholder="Catégorie">
+    <button id="addBtn">Ajouter</button>
+
+    <script>
+        const apiService = {
+            produits: [
+                { nom: "TV LED", prix: 400, cat: "Electronique" },
+                { nom: "Micro-onde", prix: 120, cat: "Electromenager" },
+                { nom: "Smartphone", prix: 800, cat: "Electronique" },
+                { nom: "Lave-linge", prix: 300, cat: "Electromenager" },
+                { nom: "Casque Audio", prix: 50, cat: "Promotion" }
+            ],
+
+            async fetchProduits() {
+                return new Promise(resolve => {
+                    setTimeout(() => resolve(this.produits), 500);
+                });
+            },
+
+            filterByCategory(cat) {
+                if (cat === "ALL") return this.produits;
+                return this.produits.filter(p => p.cat === cat);
+            },
+
+            addProduit(nom, prix, cat) {
+                this.produits.push({ nom, prix: Number(prix), cat });
+            }
+        };
+
+        const uiManager = {
+            container: document.getElementById("app"),
+
+            displayProduits(produits) {
+                this.container.innerHTML = "";
+
+                produits.forEach(p => {
+                    const div = document.createElement("div");
+                    div.classList.add("item");
+
+                    if (p.cat === "Promotion") {
+                        div.classList.add("promo");
+                        div.textContent = `Produit: ${p.nom} - Prix: ${p.prix}€ (PROMO)`;
+                    } else {
+                        div.textContent = `Produit: ${p.nom} - Prix: ${p.prix}€`;
+                    }
+
+                    this.container.appendChild(div);
+                });
+            }
+        };
+
+        async function updateDisplay(category = "ALL") {
+            const data = await apiService.fetchProduits();
+            const filtered = apiService.filterByCategory(category);
+            uiManager.displayProduits(filtered);
+        }
+
+        document.getElementById("applyFilter").addEventListener("click", () => {
+            const cat = document.getElementById("filterSelect").value;
+            updateDisplay(cat);
+        });
+
+        document.getElementById("addBtn").addEventListener("click", () => {
+            const nom = document.getElementById("nom").value;
+            const prix = document.getElementById("prix").value;
+            const cat = document.getElementById("cat").value;
+
+
+            apiService.addProduit(nom, prix, cat);
+            updateDisplay();
+        });
+
+        updateDisplay();
+
+    </script>
+
+</body>
+
 </html>
